@@ -114,6 +114,7 @@ class database{
     public function select(string $table,string $rows = "*",string $join = null, string $where = null, string $orderby =NULL, int $limit=NULL){
 
         if($this->checkTable($table)){
+
             $sql = "SELECT $rows FROM $table";
             if($join != NULL){
                 $sql .= " JOIN  $join";
@@ -125,7 +126,13 @@ class database{
                 $sql .= " ORDER BY $orderby";
             }
             if($limit != NULL){
-                $sql .= " LIMIT 0, $limit";
+                //calculating starting record of limit
+                if(isset($_GET['page'])){
+                    $page = $_GET['page'];
+                }else
+                $page = 1;
+                $start = ($page -1)*$limit;                
+                $sql .= " LIMIT $start, $limit";
             }
             $records= $this->mysqli->query($sql);
             if($records){
@@ -137,6 +144,58 @@ class database{
             }
         }else return false;
     }  
+
+    public function pagination(string $table,string $join = null, string $where = null, int $limit=NULL){
+
+        if($this->checkTable($table)){
+
+            if($limit != NULL){
+
+                $sql = "SELECT count(*) AS count FROM $table";
+                if($join != NULL){
+                    $sql .= " JOIN  $join";
+                }
+                if($where != NULL){
+                    $sql .= " WHERE $where";
+                }
+                $query = $this->mysqli->query($sql);
+                $total_rec = $query->fetch_assoc();
+                $total_rec = $total_rec['count'];
+
+                if($total_rec > $limit){
+
+                    $url = $_SERVER['PHP_SELF'];
+                    $page_name = basename($url);
+
+                    $total_pages = ceil($total_rec/$limit);
+
+                    //calculating starting record of limit
+                    if(isset($_GET['page'])){
+                        $page = $_GET['page'];
+                    }else
+                    $page = 1;
+
+                    $output = "<ul class='pagniation'>";
+                    if($page > 1){
+                        $output .= "<li><a href = '$url?page=".($page-1)."'>PREV</a></li>";
+                    }
+                    for($i = 1;$i <= $total_pages;$i++){
+                        $class = "";
+                        if($page == $i){
+                            $class = "class = 'active'";
+                        }else $class = "";
+                        $output .= "<li><a $class href = '$url?page=$i'>$i</a></li>";
+                    }
+                    if($page < $total_pages){
+                        $output .= "<li><a href = '$url?page=".($page+1)."'>NEXT</a></li>";
+                    }                    
+                    $output .= "</ul>";
+                    return $output;
+
+                }
+            }else return false;
+        }else return false;
+    } 
 
     public function getResults():array{
         $val = $this->result;

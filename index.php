@@ -10,11 +10,13 @@ $obj = new database();
 // $obj->update('students',['st_name'=>'amir','st_age'=>22,'st_city'=>'peshawar'],"st_id = 6");
 // $obj->delete('students',"st_id = 6");
 // $obj->sql("SELECT * FROM students");
-$obj->select('students',"*",NULL,"st_city = 'peshawar'",NULL,1);
+$obj->select('students',"*",NULL,NULL,NULL,3);
 $ans = $obj->getResults();
 echo "<pre>";
 print_r($ans);
 echo "</pre>";
+$pagination = $obj->pagination('students',NULL,NULL,3);
+echo $pagination;
 ?>
 
 
